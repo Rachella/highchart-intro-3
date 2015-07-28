@@ -1,6 +1,42 @@
 $(document).ready(function(){
   var Charts = function(){
-    this.graphData = [];
+  this.weeklyGraphData = [];
+  monthlyGraphData = [];  
+  quarterlyGraphData = [];  
+  yearlyGraphData = [];
+  };
+
+  // Charts.prototype.calcSMA = function(weeklyGraphPeriod, period) {
+  //   for (var i = 0; i < weeklyGraphPeriod.length; i++) {
+  //     while (var j = period; j > 0; j++) {
+  //       sum += weeklyGraphPeriod[i+j];
+  //     }
+  //     timePeriod.push({
+  //       x: weeklyGraphData[i][0],
+  //       y: (sum / period)
+  //     });
+  //   }
+  // };
+
+
+  Charts.prototype.weeklyGraphPeriod = function () {
+    var callbackFunction = function(response){
+      var items = response.data;      
+      for(var i = 0; i < items.length; i++){
+        this.weeklyGraphData.push({
+          x:new Date(items[i][0]),
+          y:items[i][1]
+        });
+      }      
+    this.graphChart(); 
+    }
+
+    $.ajax({
+      context:this,
+      type: 'GET',
+      url: 'https://www.quandl.com/api/v1/datasets/BTS_MM/RETAILGAS.json?trim_start=1995-01-02&trim_end=2012-10-15&auth_token=E6kNzExHjay2DNP8pKvB',
+      success: callbackFunction,
+    })
   };
 
   Charts.prototype.graphChart = function () {
@@ -30,33 +66,34 @@ $(document).ready(function(){
           text: 'Price (US$)'
         }
       },
-      series: [{
-        name: 'Weekly',
-        data: this.graphData.reverse()
-      }]
+      series: [
+        {
+          name: 'Yearly',
+          data: yearlyGraphData.reverse()
+        },{
+          name: 'Quarterly',
+          data: quarterlyGraphData.reverse()
+        },
+        {
+          name: 'Monthly',
+          data: monthlyGraphData.reverse()
+        },
+        {
+          name: 'Weekly',
+          data: this.weeklyGraphData.reverse()
+        }
+      ]
     };
 
     $('#chart').highcharts(highchartConfig);
-  }
-
-  Charts.prototype.getDataForOneTimePeriod = function () {
-    $.ajax({
-      context:this,
-      type: 'GET',
-      url: 'https://www.quandl.com/api/v1/datasets/BTS_MM/RETAILGAS.json?trim_start=1995-01-02&trim_end=2012-10-15&auth_token=E6kNzExHjay2DNP8pKvB',
-      success: function(response) {
-        var items = response.data;
-        for(var i = 0; i < items.length; i++){
-          this.graphData.push({
-            x:new Date(items[i][0]),
-            y:items[i][1]
-          });
-        }
-        this.graphChart();
-      }
-    })
-  }
+  }; 
 
   var chart = new Charts();
-  chart.getDataForOneTimePeriod()
+  chart.weeklyGraphPeriod();  
+  chart.monthlyGraphPeriod();  
+  chart.quarterlyGraphPeriod();  
+  chart.yearlyGraphPeriod();
+
 })
+
+
